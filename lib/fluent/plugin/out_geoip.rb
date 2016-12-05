@@ -18,16 +18,6 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_param :flush_interval, :time, :default => 0
   config_param :log_level, :string, :default => 'warn'
 
-  # Define `log` method for v0.10.42 or earlier
-  unless method_defined?(:log)
-    define_method("log") { $log }
-  end
-
-  # To support Fluentd v0.10.57 or earlier
-  unless method_defined?(:router)
-    define_method("router") { Fluent::Engine }
-  end
-
   def initialize
     require 'fluent/plugin/geoip'
 
