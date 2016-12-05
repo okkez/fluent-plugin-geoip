@@ -10,8 +10,7 @@ class GeoipOutputTest < Test::Unit::TestCase
   CONFIG = %[
     geoip_lookup_key  host
     enable_key_city   geoip_city
-    remove_tag_prefix input.
-    tag               geoip.${tag}
+    tag               geoip.${tag[1]}
   ]
 
   def create_driver(conf = CONFIG)
@@ -34,8 +33,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     test "plain" do
       d = create_driver %[
         enable_key_city   geoip_city
-        remove_tag_prefix input.
-        tag               geoip.${tag}
+        tag               geoip.${tag[1]}
       ]
       assert_equal 'geoip_city', d.instance.config['enable_key_city']
     end
@@ -44,8 +42,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       d = create_driver %[
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city, to_city
-        remove_tag_prefix input.
-        tag               geoip.${tag}
+        tag               geoip.${tag[1]}
       ]
       assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
     end
@@ -56,8 +53,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           geoip_lookup_key  from.ip, to.ip
           enable_key_city   from_city
           enable_key_region from_region
-          remove_tag_prefix input.
-          tag               geoip.${tag}
+          tag               geoip.${tag[1]}
         ]
       end
     end
@@ -69,8 +65,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           <record>
             invalid_json    {"foo" => 123}
           </record>
-          remove_tag_prefix input.
-          tag               geoip.${tag}
+          tag               geoip.${tag[1]}
         ]
       end
     end
@@ -82,8 +77,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           <record>
             invalid_json    {"foo" : string, "bar" : 123}
           </record>
-          remove_tag_prefix input.
-          tag               geoip.${tag}
+          tag               geoip.${tag[1]}
         ]
       end
     end
@@ -108,8 +102,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       <record>
         geoip_city      ${city['host']}
       </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
@@ -128,14 +121,14 @@ class GeoipOutputTest < Test::Unit::TestCase
       <record>
         geoip_city      ${city['host']}
       </record>
-      tag               geoip.${tag_parts[1]}.${tag_parts[2..3]}.${tag_parts[-1]}
+      tag               geoip.${tag[1]}.${tag[2]}.${tag[3]}
     ])
     d1.run(default_tag: '0.1.2.3') do
       d1.feed({'host' => '66.102.3.80'})
     end
     events = d1.events
     assert_equal 1, events.length
-    assert_equal 'geoip.1.2.3.3', events[0][0] # tag
+    assert_equal 'geoip.1.2.3', events[0][0] # tag
     assert_equal 'Mountain View', events[0][2]['geoip_city']
   end
 
@@ -146,8 +139,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         origin_country  ${country_code['ip.origin']}
         dest_country    ${country_code['ip.dest']}
       </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8'})
@@ -163,8 +155,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     d1 = create_driver(%[
       geoip_lookup_key  host.ip
       enable_key_city   geoip_city
-      remove_tag_prefix input.
-      add_tag_prefix    geoip.
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'host' => {'ip' => '66.102.3.80'}, 'message' => 'valid ip'})
@@ -182,10 +173,9 @@ class GeoipOutputTest < Test::Unit::TestCase
       geoip_lookup_key  host
       <record>
         geoip_city      ${city['host']}
-        geopoint        ["${longitude['host']}", "${latitude['host']}"]
+        geopoint        [${longitude['host']}, ${latitude['host']}]
       </record>
       skip_adding_null_record false
-      remove_tag_prefix input.
       tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
@@ -209,8 +199,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         geopoint        [${longitude['host']}, ${latitude['host']}]
       </record>
       skip_adding_null_record true
-      remove_tag_prefix input.
-      tag               geoip.${tag}
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       # 203.0.113.1 is a test address described in RFC5737
@@ -234,8 +223,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     d1 = create_driver(%[
       geoip_lookup_key  from.ip, to.ip
       enable_key_city   from_city, to_city
-      remove_tag_prefix input.
-      add_tag_prefix    geoip.
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
@@ -255,8 +243,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       geoip_lookup_key  from.ip, to.ip
       enable_key_city   from_city, to_city
       enable_key_country_name from_country, to_country
-      remove_tag_prefix input.
-      add_tag_prefix    geoip.
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
@@ -301,8 +288,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         broken_array1   [${longitude['from.ip']}, ${latitude['undefined']}]
         broken_array2   [${longitude['undefined']}, ${latitude['undefined']}]
       </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'from' => {'ip' => '66.102.3.80'}})
@@ -357,8 +343,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         to_country      ${country_name['to.ip']}
         string_array    [${country_name['from.ip']}, ${country_name['to.ip']}]
       </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
@@ -391,8 +376,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       location_array2      '[${longitude["host"]},${latitude["host"]}]'
       peculiar_pattern     '[GEOIP] message => {"lat":${latitude["host"]}, "lon":${longitude["host"]}}'
     </record>
-    remove_tag_prefix input.
-    tag               geoip.${tag}
+    tag               geoip.${tag[1]}
   ]
 
   def test_emit_quoted_record
@@ -440,8 +424,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           "longitude": "${longitude['host']}"
         }
       </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
+      tag               geoip.${tag[1]}
     ])
     d1.run(default_tag: 'input.access') do
       d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
