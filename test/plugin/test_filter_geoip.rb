@@ -27,6 +27,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     d.events
   end
 
+  sub_test_case "configure" do
   def test_configure
     assert_nothing_raised {
       create_driver('')
@@ -72,6 +73,7 @@ class GeoipFilterTest < Test::Unit::TestCase
         </record>
       ]
     }
+  end
   end
 
   def test_filter
