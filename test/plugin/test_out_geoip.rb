@@ -13,8 +13,8 @@ class GeoipOutputTest < Test::Unit::TestCase
     tag               geoip.${tag[1]}
   ]
 
-  def create_driver(conf = CONFIG)
-    Fluent::Test::Driver::Output.new(Fluent::Plugin::GeoipOutput).configure(conf)
+  def create_driver(conf = CONFIG, syntax: :v1)
+    Fluent::Test::Driver::Output.new(Fluent::Plugin::GeoipOutput).configure(conf, syntax: syntax)
   end
 
   sub_test_case "configure" do
@@ -177,7 +177,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       </record>
       skip_adding_null_record false
       tag               geoip.${tag[1]}
-    ])
+    ], syntax: :v0)
     d1.run(default_tag: 'input.access') do
       # 203.0.113.1 is a test address described in RFC5737
       d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -200,7 +200,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       </record>
       skip_adding_null_record true
       tag               geoip.${tag[1]}
-    ])
+    ], syntax: :v0)
     d1.run(default_tag: 'input.access') do
       # 203.0.113.1 is a test address described in RFC5737
       d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -289,7 +289,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         broken_array2   [${longitude['undefined']}, ${latitude['undefined']}]
       </record>
       tag               geoip.${tag[1]}
-    ])
+    ], syntax: :v0)
     d1.run(default_tag: 'input.access') do
       d1.feed({'from' => {'ip' => '66.102.3.80'}})
       d1.feed({'message' => 'missing field'})
@@ -344,7 +344,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         string_array    [${country_name['from.ip']}, ${country_name['to.ip']}]
       </record>
       tag               geoip.${tag[1]}
-    ])
+    ], syntax: :v0)
     d1.run(default_tag: 'input.access') do
       d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
       d1.feed({'message' => 'missing field'})
