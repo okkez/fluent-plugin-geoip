@@ -1,4 +1,6 @@
 require 'fluent/mixin/rewrite_tag_name'
+require 'fluent/plugin/geoip'
+require 'fluent/mixin'
 
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
@@ -19,8 +21,6 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_param :log_level, :string, :default => 'warn'
 
   def initialize
-    require 'fluent/plugin/geoip'
-
     super
   end
 
