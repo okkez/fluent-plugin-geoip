@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "appraisal"
   spec.add_development_dependency "test-unit", ">= 3.1.0"
 
-  spec.add_runtime_dependency "fluentd"
+  spec.add_runtime_dependency "fluentd", [">= 0.14.8", "< 2"]
   spec.add_runtime_dependency "fluent-mixin-rewrite-tag-name"
   spec.add_runtime_dependency "geoip-c"
 end
