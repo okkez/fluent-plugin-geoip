@@ -19,62 +19,62 @@ class GeoipOutputTest < Test::Unit::TestCase
   end
 
   sub_test_case "configure" do
-  def test_configure
-    assert_raise(Fluent::ConfigError) {
-      d = create_driver('')
-    }
-    assert_raise(Fluent::ConfigError) {
-      d = create_driver('enable_key_cities')
-    }
-    d = create_driver %[
-      enable_key_city   geoip_city
-      remove_tag_prefix input.
-      tag               geoip.${tag}
-    ]
-    assert_equal 'geoip_city', d.instance.config['enable_key_city']
+    def test_configure
+      assert_raise(Fluent::ConfigError) {
+        d = create_driver('')
+      }
+      assert_raise(Fluent::ConfigError) {
+        d = create_driver('enable_key_cities')
+      }
+      d = create_driver %[
+        enable_key_city   geoip_city
+        remove_tag_prefix input.
+        tag               geoip.${tag}
+      ]
+      assert_equal 'geoip_city', d.instance.config['enable_key_city']
 
-    # multiple key config
-    d = create_driver %[
-      geoip_lookup_key  from.ip, to.ip
-      enable_key_city   from_city, to_city
-      remove_tag_prefix input.
-      tag               geoip.${tag}
-    ]
-    assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
-
-    # multiple key config (bad configure)
-    assert_raise(Fluent::ConfigError) {
+      # multiple key config
       d = create_driver %[
         geoip_lookup_key  from.ip, to.ip
-        enable_key_city   from_city
-        enable_key_region from_region
+        enable_key_city   from_city, to_city
         remove_tag_prefix input.
         tag               geoip.${tag}
       ]
-    }
+      assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
 
-    # invalid json structure
-    assert_raise(Fluent::ConfigError) {
-      d = create_driver %[
-        geoip_lookup_key  host
-        <record>
-          invalid_json    {"foo" => 123}
-        </record>
-        remove_tag_prefix input.
-        tag               geoip.${tag}
-      ]
-    }
-    assert_raise(Fluent::ConfigError) {
-      d = create_driver %[
-        geoip_lookup_key  host
-        <record>
-          invalid_json    {"foo" : string, "bar" : 123}
-        </record>
-        remove_tag_prefix input.
-        tag               geoip.${tag}
-      ]
-    }
-  end
+      # multiple key config (bad configure)
+      assert_raise(Fluent::ConfigError) {
+        d = create_driver %[
+          geoip_lookup_key  from.ip, to.ip
+          enable_key_city   from_city
+          enable_key_region from_region
+          remove_tag_prefix input.
+          tag               geoip.${tag}
+        ]
+      }
+
+      # invalid json structure
+      assert_raise(Fluent::ConfigError) {
+        d = create_driver %[
+          geoip_lookup_key  host
+          <record>
+            invalid_json    {"foo" => 123}
+          </record>
+          remove_tag_prefix input.
+          tag               geoip.${tag}
+        ]
+      }
+      assert_raise(Fluent::ConfigError) {
+        d = create_driver %[
+          geoip_lookup_key  host
+          <record>
+            invalid_json    {"foo" : string, "bar" : 123}
+          </record>
+          remove_tag_prefix input.
+          tag               geoip.${tag}
+        ]
+      }
+    end
   end
 
   def test_emit
