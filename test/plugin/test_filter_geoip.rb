@@ -13,13 +13,12 @@ class GeoipFilterTest < Test::Unit::TestCase
     enable_key_city   geoip_city
   ]
 
-  def create_driver(conf=CONFIG, tag='test')
-    Fluent::Test::Driver::Filter.new(Fluent::GeoipFilter, tag).configure(conf)
+  def create_driver(conf = CONFIG, syntax: :v1)
+    Fluent::Test::Driver::Filter.new(Fluent::Plugin::GeoipFilter).configure(conf, syntax: syntax)
   end
 
-  def filter(config, messages)
-    d = create_driver(config)
-    d.run {
+  def filter(config, messages, syntax: :v1)
+    d = create_driver(config, syntax: syntax)
     d.run(default_tag: "input.access") {
       messages.each {|message|
         d.feed(@time, message)
@@ -142,7 +141,7 @@ class GeoipFilterTest < Test::Unit::TestCase
       {'host' => '203.0.113.1', 'message' => 'invalid ip', 'geoip_city' => nil, 'geopoint' => [nil, nil]},
       {'host' => '0', 'message' => 'invalid ip', 'geoip_city' => nil, 'geopoint' => [nil, nil]}
     ]
-    filtered = filter(config, messages)
+    filtered = filter(config, messages, syntax: :v0)
     assert_equal(expected, filtered)
   end
 
@@ -167,7 +166,7 @@ class GeoipFilterTest < Test::Unit::TestCase
       {'host' => '8.8.8.8', 'message' => 'google public dns',
        'geoip_city' => 'Mountain View', 'geopoint' => [-122.08380126953125, 37.38600158691406]}
     ]
-    filtered = filter(config, messages)
+    filtered = filter(config, messages, syntax: :v0)
     assert_equal(expected, filtered)
   end
 
@@ -288,7 +287,7 @@ class GeoipFilterTest < Test::Unit::TestCase
         'broken_array2' => [nil, nil]
       },
     ]
-    filtered = filter(config, messages)
+    filtered = filter(config, messages, syntax: :v0)
     # test-unit cannot calculate diff between large Array
     assert_equal(expected[0], filtered[0])
     assert_equal(expected[1], filtered[1])
@@ -328,7 +327,7 @@ class GeoipFilterTest < Test::Unit::TestCase
         'string_array' => [nil, nil]
       }
     ]
-    filtered = filter(config, messages)
+    filtered = filter(config, messages, syntax: :v0)
     assert_equal(expected, filtered)
   end
 
@@ -386,7 +385,7 @@ class GeoipFilterTest < Test::Unit::TestCase
         'peculiar_pattern' => '[GEOIP] message => {"lat":37.4192008972168, "lon":-122.05740356445312}'
       }
     ]
-    filtered = filter(CONFIG_QUOTED_RECORD, messages, true)
+    filtered = filter(CONFIG_QUOTED_RECORD, messages)
     assert_equal(expected, filtered)
   end
 
@@ -416,7 +415,7 @@ class GeoipFilterTest < Test::Unit::TestCase
         }
       }
     ]
-    filtered = filter(config, messages, true)
+    filtered = filter(config, messages)
     assert_equal(expected, filtered)
   end
 end
