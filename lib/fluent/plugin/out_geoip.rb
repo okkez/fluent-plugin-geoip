@@ -20,10 +20,6 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_param :flush_interval, :time, :default => 0
   config_param :log_level, :string, :default => 'warn'
 
-  def initialize
-    super
-  end
-
   def configure(conf)
     super
     Fluent::GeoIP.class_eval do
@@ -32,16 +28,8 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     @geoip = Fluent::GeoIP.new(self, conf)
   end
 
-  def start
-    super
-  end
-
   def format(tag, time, record)
     [tag, time, record].to_msgpack
-  end
-
-  def shutdown
-    super
   end
 
   def write(chunk)
