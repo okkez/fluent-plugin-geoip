@@ -16,9 +16,15 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   config_param :flush_interval, :time, default: 0
   config_param :log_level, :string, default: 'warn'
 
+  config_section :buffer do
+    config_set_default :@type, :memory
+    config_set_default :chunk_keys, ['tag']
+  end
+
   def configure(conf)
     compat_parameters_convert(conf, :buffer, default_chunk_key: 'tag')
     super
+    raise Fluetn::ConfigError, "chunk key must include 'tag'" unless @chunk_key_tag
     @geoip = Fluent::GeoIP.new(self, conf)
   end
 
