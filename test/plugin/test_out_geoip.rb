@@ -18,6 +18,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     Fluent::Test::Driver::Output.new(Fluent::Plugin::GeoipOutput).configure(conf)
   end
 
+  sub_test_case "configure" do
   def test_configure
     assert_raise(Fluent::ConfigError) {
       d = create_driver('')
@@ -73,6 +74,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         tag               geoip.${tag}
       ]
     }
+  end
   end
 
   def test_emit
