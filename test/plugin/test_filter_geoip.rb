@@ -28,51 +28,63 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   sub_test_case "configure" do
-    def test_configure
-      assert_nothing_raised {
+    test "empty" do
+      assert_nothing_raised do
         create_driver('')
-      }
-      assert_raise(Fluent::ConfigError) {
+      end
+    end
+
+    test "invalid key" do
+      assert_raise(Fluent::ConfigError) do
         create_driver('enable_key_cities')
-      }
+      end
+    end
+
+    test "simple" do
       d = create_driver %[
         enable_key_city   geoip_city
       ]
       assert_equal 'geoip_city', d.instance.config['enable_key_city']
+    end
 
-      # multiple key config
+    test "multiple key config" do
       d = create_driver %[
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city, to_city
       ]
       assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
+    end
 
-      # multiple key config (bad configure)
-      assert_raise(Fluent::ConfigError) {
-        d = create_driver %[
+    test "multiple key config (bad configure)" do
+      assert_raise(Fluent::ConfigError) do
+        create_driver %[
           geoip_lookup_key  from.ip, to.ip
           enable_key_city   from_city
           enable_key_region from_region
         ]
-      }
+      end
+    end
 
-      # invalid json structure
-      assert_raise(Fluent::ConfigError) {
-        d = create_driver %[
+    test "invalid json structure" do
+      assert_raise(Fluent::ConfigParseError) {
+        create_driver %[
           geoip_lookup_key  host
           <record>
             invalid_json    {"foo" => 123}
           </record>
         ]
       }
-      assert_raise(Fluent::ConfigError) {
-        d = create_driver %[
+    end
+
+    test "invalid json structure 2" do
+      assert_raise(Fluent::ConfigParseError) do
+        create_driver %[
           geoip_lookup_key  host
           <record>
             invalid_json    {"foo" : string, "bar" : 123}
           </record>
         ]
-      }
+      end
     end
   end
 
