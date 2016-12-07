@@ -1,4 +1,6 @@
 require 'geoip'
+require 'geoip2_compat'
+require 'hive_geoip2'
 require 'yajl'
 
 module Fluent
@@ -56,7 +58,14 @@ module Fluent
         raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
       end
 
-      @geoip = ::GeoIP::City.new(plugin.geoip_database, :memory, false)
+      @geoip = case plugin.backend_library
+               when :geoip
+                 ::GeoIP::City.new(plugin.geoip_database, :memory, false)
+               when :geoip2_compat
+                 GeoIP2Compat.new(plugin.geoip2_database)
+               when :hive_geoip2
+                 Hive::GeoIP2.new(plugin.geoip2_database)
+               end
     end
 
     def add_geoip_field(record)
@@ -111,7 +120,14 @@ module Fluent
     def geolocate(addresses)
       geodata = {}
       addresses.each do |field, ip|
-        geo = ip.nil? ? nil : @geoip.look_up(ip)
+        geo = nil
+        if ip
+          geo = if @geoip.respond_to?(:look_up)
+                  @geoip.look_up(ip)
+                else
+                  @geoip.lookup(ip)
+                end
+        end
         geodata[field] = geo
       end
       geodata
