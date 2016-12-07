@@ -6,6 +6,7 @@ module Fluent::Plugin
     Fluent::Plugin.register_filter('geoip', self)
 
     config_param :geoip_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
+    config_param :geoip2_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLite2-City.mmdb'
     config_param :geoip_lookup_key, :string, default: 'host'
     config_param :skip_adding_null_record, :bool, default: false
 
@@ -14,6 +15,8 @@ module Fluent::Plugin
     config_param :hostname_command, :string, default: 'hostname'
 
     config_param :log_level, :string, default: 'warn'
+
+    config_param :backend_library, :enum, list: [:geoip, :geoip2_compat, :hive_geoip2], default: :geoip
 
     def configure(conf)
       super
