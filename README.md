@@ -12,7 +12,81 @@ The accuracy details for GeoLite City (free) and GeoIP City (purchased) has desc
 
 ## Notice
 
-If you want to use this plugin with Fluentd v0.12.x or earlier use xxx.
+If you want to use this plugin with Fluentd v0.12.x or earlier use 0.6.x.
+
+### Compatibility notice
+
+We've used Fluentd v0.14 API in this plugin since this version.
+So we have dropped some features.
+
+#### `Fluent::HandleTagNameMixin` feature
+
+* `remove_tag_prefix`
+* `remove_tag_suffix`
+* `add_tag_prefix`
+* `add_tag_suffix`
+
+Alternative:
+
+Use placeholders `${tag}, ${tag[0]}, ${tag[1]}`
+
+```
+<match input.access>
+  @type geoip
+  geoip_lookup_key  host
+  geoip_database    "/path/to/your/GeoIPCity.dat"
+  # Old version config
+  # remove_tag_prefix input.
+  # tag               geoip.${tag}
+  #
+  # Alternative way for newer version
+  tag geoip.${tag[1]}
+  <record>
+    ...
+  </record>
+</match>
+```
+
+#### `Fluent::SetTagKeyMixin` feature
+
+* `include_tag_key`
+
+Alternative:
+
+Use `tag_key` instead, but `include_tag_key` will convert to `tag_key` automatically.
+
+```
+<match **>
+  @type geoip
+  <inject>
+    tag_key tag
+  </inject>
+</match>
+```
+
+#### `Fluent::Mixin::RewriteTagName` feature
+
+* `${tag}`, `__TAG__`
+  * Use `${tag}` placeholder
+* `${tag_parts[n]}`, `__TAG_PARTS[n]__`
+  * Use `${tag[n]}` placeholder
+* `${hostname}`, `__HOSTNAME__`
+    Use inject section and chunk keys:
+    ```
+    <match **>
+      @type geoip
+      tag geoip.${tag[1]}.${hostname}
+      <record>
+        city ${city["host"]}
+      </record>
+      <buffer tag, hostname>
+        flush_interval 1s
+      </buffer>
+      <inject>
+        hostname_key hostanme
+      </inject>
+    </match>
+    ```
 
 ## Dependency
 
@@ -52,7 +126,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 ```xml
 <match access.apache>
-  type geoip
+  @type geoip
 
   # Specify one or more geoip lookup field which has ip address (default: host)
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
@@ -93,7 +167,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 ```xml
 <match access.apache>
-  type geoip
+  @type geoip
   geoip_lookup_key  user1_host, user2_host
   <record>
     user1_city      ${city["user1_host"]}
@@ -108,15 +182,16 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.<br />
 
+**Notice** v0 config will be deprecated in the future.
 
 ```
 <match access.apache>
-  type                   geoip
+  @type                  geoip
   geoip_lookup_key       host
   <record>
     # lat lon as properties
     # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
-    location_properties  { "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }
+    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
   
     # lat lon as string
     # ex. "37.4192008972168,-122.05740356445312"
@@ -124,29 +199,12 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
     
     # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
     # ex. [-122.05740356445312, 37.4192008972168]
-    location_array       [${longitude["host"]},${latitude["host"]}]
+    location_array       '[${longitude["host"]},${latitude["host"]}]'
   </record>
   remove_tag_prefix      access.
   tag                    geoip.${tag}
 
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
-  skip_adding_null_record  true
-</match>
-```
-
-On the case of using td-agent2 (v1-config), it have to quote `{ ... }` or `[ ... ]` block with quotation like below.
-
-```
-<match access.apache>
-  type                   geoip
-  geoip_lookup_key       host
-  <record>
-    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
-    location_string      ${latitude["host"]},${longitude["host"]}
-    location_array       '[${longitude["host"]},${latitude["host"]}]'
-  </record>
-  remove_tag_prefix      access.
-  tag                    geoip.${tag}
   skip_adding_null_record  true
 </match>
 ```
@@ -198,16 +256,16 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
 ```xml
 <source>
-  type forward
+  @type forward
 </source>
 
 <match test.geoip>
-  type copy
+  @type copy
   <store>
-    type stdout
+    @type stdout
   </store>
   <store>
-    type    geoip
+    @type    geoip
     geoip_lookup_key  host
     <record>
       lat     ${latitude["host"]}
@@ -220,7 +278,7 @@ Note that filter version of geoip plugin does not have handling tag feature.
 </match>
 
 <match debug.**>
-  type stdout
+  @type stdout
 </match>
 ```
 
@@ -311,16 +369,9 @@ Further details are written at http://docs.fluentd.org/articles/in_exec
 Skip adding geoip fields when this valaues to `true`.
 On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
 
-* `remove_tag_prefix`
-* `remove_tag_suffix`
-* `add_tag_prefix`
-* `add_tag_suffix`
-
-Set one or more option are required unless using `tag` option for editing tag name. (HandleTagNameMixin feature)
-
 * `tag`
 
-On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)), it will be overwrite after these options affected. which are remove_tag_prefix, remove_tag_suffix, add_tag_prefix and add_tag_suffix.
+On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)).
 
 * `flush_interval` (default: 0 sec)
 
