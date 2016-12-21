@@ -9,7 +9,7 @@ module Fluent
     REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
 
     GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
-    GEOIP2_COMPAT_KEYS = %w(city country_code country_name latitude longitude postal_code resion region_name)
+    GEOIP2_COMPAT_KEYS = %w(city country_code country_name latitude longitude postal_code region region_name)
 
     attr_reader :log
 
