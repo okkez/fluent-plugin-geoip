@@ -1,6 +1,6 @@
 require 'geoip'
 require 'geoip2_compat'
-require 'hive_geoip2'
+require 'geoip2'
 require 'yajl'
 
 module Fluent
@@ -63,8 +63,8 @@ module Fluent
                  ::GeoIP::City.new(plugin.geoip_database, :memory, false)
                when :geoip2_compat
                  GeoIP2Compat.new(plugin.geoip2_database)
-               when :hive_geoip2
-                 Hive::GeoIP2.new(plugin.geoip2_database)
+               when :geoip2_c
+                 GeoIP2::Database.new(plugin.geoip2_database)
                end
     end
 
