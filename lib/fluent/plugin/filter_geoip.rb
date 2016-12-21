@@ -16,7 +16,7 @@ module Fluent::Plugin
 
     config_param :log_level, :string, default: 'warn'
 
-    config_param :backend_library, :enum, list: [:geoip, :geoip2_compat, :hive_geoip2], default: :geoip
+    config_param :backend_library, :enum, list: [:geoip, :geoip2_compat, :geoip2], default: :geoip
 
     def configure(conf)
       super
