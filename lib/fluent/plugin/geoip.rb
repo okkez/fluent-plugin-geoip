@@ -1,5 +1,6 @@
 require 'geoip'
 require 'yajl'
+require 'dig_rb'
 
 module Fluent
   class GeoIP
