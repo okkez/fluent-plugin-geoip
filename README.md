@@ -67,6 +67,8 @@ See also [official document](http://docs.fluentd.org/v0.14/articles/plugin-updat
     </match>
     ```
 
+    **NOTE**: You cannot use `hostname` as `chunk_keys` in Alternative2.
+
 ## Dependency
 
 before use, install dependent library as:
