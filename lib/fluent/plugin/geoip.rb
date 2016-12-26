@@ -113,7 +113,7 @@ module Fluent
     def get_address(record)
       address = {}
       @geoip_lookup_key.each do |field|
-        address[field] = record.dig(*field.split('.'))
+        address[field] = record[field] || record.dig(*field.split('.'))
       end
       address
     end
